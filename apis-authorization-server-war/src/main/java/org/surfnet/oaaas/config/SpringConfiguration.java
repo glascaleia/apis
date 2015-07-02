@@ -17,6 +17,7 @@
 package org.surfnet.oaaas.config;
 
 import com.googlecode.flyway.core.Flyway;
+
 import org.apache.openjpa.persistence.PersistenceProviderImpl;
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.context.annotation.*;
@@ -45,6 +46,7 @@ import javax.validation.Validator;
  */
 @Configuration
 @PropertySource("classpath:apis.application.properties")
+@Import(CasSpringConfiguration.class)
 /*
  * The component scan can be used to add packages and exclusions to the default
  * package
@@ -116,6 +118,11 @@ public class SpringConfiguration {
   @Bean
   public OAuth2Validator oAuth2Validator() {
     return new OAuth2ValidatorImpl();
+  }
+  
+  @Bean
+  public ResourceOwnerAuthenticator resourceOwnerAuthenticator() {
+    return (ResourceOwnerAuthenticator) getConfiguredBean("resourceOwnerAuthenticatorClass");
   }
 
   /**

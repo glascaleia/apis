@@ -15,20 +15,31 @@
  */
 package org.surfnet.oaaas.model;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.CollectionTable;
+import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.MapKeyColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import javax.validation.ConstraintValidatorContext;
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
-import org.surfnet.oaaas.auth.principal.UserPassCredentials;
 
 /**
  * Represents a Client as defined by the OAuth 2 specification:
@@ -43,6 +54,7 @@ import org.surfnet.oaaas.auth.principal.UserPassCredentials;
 @Entity
 @XmlRootElement
 @Table(name = "client")
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class Client extends AbstractEntity {
 
     @Column(name = "clientName")
@@ -276,11 +288,15 @@ public class Client extends AbstractEntity {
         this.expireDuration = expireDuration;
     }
 
-    public boolean isExactMatch(UserPassCredentials credentials) {
-        return credentials != null && credentials.isValid() && credentials.getUsername().equals(
-                clientId)
-                && credentials.getPassword().equals(secret);
-
+    /**
+     * Confirm that we know the client's secret.
+     *
+     * @param clientSecret
+     * @return {@code true} if we know the secret
+     */
+    public boolean verifySecret(String clientSecret) {
+        return (secret == null && clientSecret == null)
+                || (secret != null && secret.equals(clientSecret));
     }
 
     /**
@@ -338,14 +354,12 @@ public class Client extends AbstractEntity {
         boolean isValid = true;
 
         if (isUseRefreshTokens() && getExpireDuration() == 0L) {
-            violation(context,
-                    "If refresh tokens are to be used then the expiry duration must be greater then 0");
+            violation(context, "If refresh tokens are to be used then the expiry duration must be greater then 0");
             isValid = false;
         }
 
         if (isAllowedClientCredentials() && isAllowedImplicitGrant()) {
-            violation(context,
-                    "A Client can not be issued the client credentials grant AND the implicit grant as client credentials requires a secret.");
+            violation(context, "A Client can not be issued the client credentials grant AND the implicit grant as client credentials requires a secret.");
             isValid = false;
         }
 
@@ -358,10 +372,12 @@ public class Client extends AbstractEntity {
 
         for (String redirectUri : redirectUris) {
             try {
-                new URL(redirectUri);
-            } catch (MalformedURLException e) {
-                violation(context,
-                        "redirectUri '" + redirectUri + "' is not a valid URI");
+                URI uri = new URI(redirectUri);
+                if (uri.getScheme() == null) {
+                    isValid = false;
+                }
+            } catch (URISyntaxException e) {
+                violation(context, "redirectUri '" + redirectUri + "' is not a valid URI");
                 isValid = false;
             }
         }
