@@ -51,7 +51,6 @@ import org.hibernate.validator.constraints.Email;
     @UniqueConstraint(columnNames = {"owner", "resourceServerName"})
 )
 @XmlRootElement
-@Inheritance(strategy =  InheritanceType.TABLE_PER_CLASS)
 public class ResourceServer extends AbstractEntity {
 
   public static final String SCOPE_PATTERN = "^[^,]+$"; // anything but a comma

@@ -36,7 +36,6 @@ import java.util.List;
 @SuppressWarnings("serial")
 @Entity
 @Table(name = "accesstoken")
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement
 public class AccessToken extends AbstractEntity {
@@ -53,7 +52,7 @@ public class AccessToken extends AbstractEntity {
   private AuthenticatedPrincipal principal;
 
   @Lob
-  @Column(length = 16384)
+  @Column(length = 16384, columnDefinition = "TEXT")
   @NotNull
   @XmlTransient
   private String encodedPrincipal;

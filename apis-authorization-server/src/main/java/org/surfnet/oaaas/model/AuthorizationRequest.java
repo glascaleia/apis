@@ -40,7 +40,6 @@ import org.surfnet.oaaas.auth.principal.AuthenticatedPrincipal;
 @SuppressWarnings("serial")
 @Entity
 @Table(name = "authorizationrequest")
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class AuthorizationRequest extends AbstractEntity {
 
   @Column
@@ -54,7 +53,7 @@ public class AuthorizationRequest extends AbstractEntity {
   private AuthenticatedPrincipal principal;
 
   @Lob
-  @Column(length = 16384)
+  @Column(length = 16384, columnDefinition = "TEXT")
   private String encodedPrincipal;
 
   @ManyToOne(optional = false)

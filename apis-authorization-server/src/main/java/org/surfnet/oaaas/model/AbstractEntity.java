@@ -37,12 +37,13 @@ import java.util.Date;
 @XmlRootElement
 @Entity
 @AbstractEntityValid
+@Inheritance(strategy =  InheritanceType.TABLE_PER_CLASS)
 public abstract class AbstractEntity implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
   @Id
-  @GeneratedValue
+  @GeneratedValue(strategy = GenerationType.TABLE)
   @JsonProperty
   private Long id;
 
